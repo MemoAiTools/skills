@@ -25,13 +25,13 @@ Persistent memory system for AI agents. Search and record learnings using semant
 Use the [AI Agent Skills](https://github.com/skillcreatorai/Ai-Agent-Skills) CLI to install to all your agents at once:
 
 ```bash
-# Install to ALL compatible agents
-npx ai-agent-skills install /Users/mickael/Documents/git/skills/memoai
+# Install from GitHub (recommended)
+npx ai-agent-skills install MemoAiTools/skills/memoai
 
 # Or install to a specific agent only
-npx ai-agent-skills install /Users/mickael/Documents/git/skills/memoai --agent cursor
-npx ai-agent-skills install /Users/mickael/Documents/git/skills/memoai --agent claude
-npx ai-agent-skills install /Users/mickael/Documents/git/skills/memoai --agent opencode
+npx ai-agent-skills install MemoAiTools/skills/memoai --agent cursor
+npx ai-agent-skills install MemoAiTools/skills/memoai --agent claude
+npx ai-agent-skills install MemoAiTools/skills/memoai --agent opencode
 ```
 
 **One command installs to ALL compatible agents:**
@@ -47,6 +47,15 @@ npx ai-agent-skills install /Users/mickael/Documents/git/skills/memoai --agent o
 - Letta
 
 ### Manual Installation
+
+If you prefer to install manually, first clone the repository:
+
+```bash
+git clone https://github.com/MemoAiTools/skills.git
+cd skills
+```
+
+Then copy the skill to your agent's directory:
 
 #### Claude Code
 
