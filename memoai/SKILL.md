@@ -14,6 +14,38 @@ metadata:
 
 MemoAI provides persistent memory across coding sessions. Use it to search past bug fixes, record new learnings, and maintain project knowledge that survives between sessions.
 
+## Mental Model
+
+Think of MemoAI as **your external brain**:
+
+1. **Before acting** → Search your brain
+2. **After learning** → Update your brain
+
+### Simple Rule
+
+```
+Every task/question → Search memoai FIRST → Then act
+```
+
+**Not:**
+```
+Question → Think → Answer → Maybe search
+```
+
+**But:**
+```
+Question → Search → Use results + docs → Answer
+```
+
+This applies to:
+- User questions (obvious)
+- **Your own implementation needs (critical!)**
+- Technical decisions
+- Bug fixing
+- Architecture choices
+
+---
+
 ## Available MCP Tools
 
 The MemoAI MCP server exposes 2 core tools for memory management:
@@ -153,20 +185,61 @@ The system automatically classifies learnings into these types:
 
 ## Proactive Behavior (CRITICAL)
 
-You MUST use MemoAI tools proactively in these situations:
+MemoAI is your persistent memory. Use it BEFORE thinking, not after.
 
-### Auto-Search Before Answering
+### 1. When User Asks or Reports
 
 **ALWAYS use `memoai_memo_search` BEFORE answering when the user:**
 
 - Asks "How did we handle X before?"
 - Asks "What's the pattern for Y?"
 - Asks "Have we seen this bug before?"
+- Asks "Comment faire X ?" / "How to do X?"
 - Asks "Comment avons-nous fait X?"
+- Reports a bug or error
+- Asks about setup, configuration, or deployment
 - Uses phrases like: "déjà fait", "already done", "similar issue", "bug similaire"
 - Mentions debugging or investigating an issue
 - Asks about architecture or implementation decisions
 - When exploring a new area of the codebase
+
+### 2. When You (AI) Need To Think or Act
+
+**ALWAYS use `memoai_memo_search` BEFORE:**
+
+- Implementing a new feature or functionality
+- Fixing a bug or debugging an issue
+- Making a technical decision (library choice, architecture, pattern)
+- Writing code that might follow existing patterns
+- Answering any question about the project
+- Starting any non-trivial task
+- Choosing an approach or solution strategy
+- Refactoring code
+
+**Example - Internal reasoning:**
+
+```
+User: "Implement JWT authentication"
+
+AI Internal thought process:
+1. STOP - Search memoai first
+2. Query: "authentication JWT implementation pattern"
+3. Found: "We use jose library, store tokens in httpOnly cookies, 
+           refresh token pattern with 7-day expiry"
+4. NOW implement following this pattern
+```
+
+### General Rule
+
+**When in doubt, SEARCH FIRST. Assume past experience exists.**
+
+Default behavior:
+```
+1. Receive user request
+2. Search memoai with natural language query
+3. Evaluate results
+4. Proceed with implementation/answer
+```
 
 **Example workflow:**
 
@@ -185,9 +258,26 @@ Agent: Let me search our past learnings...
 
 ---
 
-### Auto-Record Detection (Manual)
+## Recording Behavior (CRITICAL)
 
-**Since automated detection is not available, manually detect these patterns in user messages:**
+After acting, record learnings for future use.
+
+### 1. When to Record
+
+Recording creates organizational memory. Record learnings that:
+- Help solve similar problems in the future
+- Document non-obvious decisions or solutions
+- Capture project-specific patterns or conventions
+- Save investigation time for you or teammates
+
+**Don't record:**
+- Trivial changes (typo fixes, formatting)
+- Obvious solutions following explicit instructions
+- Temporary experiments or failed attempts
+
+### 2. Detecting User Learnings
+
+**Manually detect these patterns in user messages:**
 
 **1. Bug resolution**
 - Pattern: "I fixed", "j'ai résolu", "that solved it", "ça marche maintenant"
@@ -227,6 +317,115 @@ Agent: [Uses memoai_memo_record with the content]
        Recorded successfully! This will be available for future searches.
 ```
 
+### 3. Recording Your Own Work
+
+**After completing a task, YOU (AI) should proactively offer to record when:**
+
+#### Always Offer to Record
+
+- **Feature Implementation**: Implemented a new feature or functionality
+- **Bug Resolution**: Fixed a bug that required investigation or non-obvious solution
+- **Technical Decision**: Made a choice between multiple approaches (libraries, patterns, architecture)
+- **Pattern Discovery**: Discovered a project-specific pattern, rule, or convention
+- **Significant Refactoring**: Refactored code in a meaningful way (not just formatting)
+- **Performance Improvement**: Optimized code with measurable impact
+- **Workaround Applied**: Used a temporary solution that should be tracked
+
+#### Never Record
+
+- Trivial changes (typo fixes, formatting)
+- Simple command execution without learning
+- Obvious modifications following explicit user instructions
+- Code that strictly follows existing patterns without variation
+
+#### Workflow
+
+```
+1. Complete task successfully
+2. Evaluate: Is this non-trivial? Did I learn/decide something?
+3. If YES → Propose recording to user
+4. Wait for user confirmation
+5. If confirmed → Use memoai_memo_record
+```
+
+#### Format for Proposing
+
+**Two-step process:**
+
+1. **Show user a SUMMARY** for quick understanding
+2. **Record DETAILED content** if user confirms
+
+**Format:**
+
+```
+[Brief summary of what was done]
+
+Should I record this in your memory?
+
+[Yes] [Edit first] [No]
+```
+
+**Example:**
+
+```
+Agent: "I've successfully implemented JWT authentication using the jose library.
+
+       Should I record this implementation in your memory?
+       
+       [Yes] [Edit first] [No]"
+
+[If user says Yes]
+
+Agent: [Uses memoai_memo_record with DETAILED content:]
+{
+  content: "Implemented JWT authentication for API endpoints.
+  
+  Technical details:
+  - Library: python-jose[cryptography]==3.3.0
+  - Token storage: httpOnly cookies with secure flag in production
+  - Token types: Access (15min expiry) + Refresh (7 day expiry)
+  - Algorithm: HS256 with SECRET_KEY from environment
+  - Middleware: JWTAuthMiddleware checks Authorization header or cookies
+  - Validation: Checks signature, expiry, and required claims (sub, exp, iat)
+  - Refresh flow: POST /auth/refresh with valid refresh token
+  - Error handling: Returns 401 with clear error messages
+  
+  Implementation files:
+  - src/auth/jwt.py: Token generation/validation functions
+  - src/middleware/auth.py: Authentication middleware
+  - src/routes/auth.py: Login/logout/refresh endpoints
+  
+  Rationale:
+  - Chose jose over PyJWT for better cryptography support
+  - httpOnly cookies prevent XSS attacks on tokens
+  - Refresh tokens allow long sessions without security risk
+  
+  Testing:
+  - Added tests in tests/test_auth.py for all flows
+  - Verified token expiry, refresh, and invalid token handling",
+  source: "implementation"
+}
+
+Agent: "Recorded with full implementation details!"
+```
+
+**Key principle:**
+- **User sees**: Brief summary (low cognitive load)
+- **MemoAI stores**: Complete details (maximum future value)
+- **User can choose**: "Edit first" to review/modify detailed content before recording
+
+#### Decision Criteria
+
+Ask yourself after each task:
+- **Did I make a non-obvious choice?** → Offer to record
+- **Will this help solve similar problems later?** → Offer to record
+- **Did I discover something about the project?** → Offer to record
+- **Is this just following explicit instructions?** → Don't record
+
+**General Rule: When in doubt about recording, ASK the user.**
+
+**Note:** ALWAYS wait for user confirmation before recording. Never record automatically.
+
 ---
 
 ### Before Starting Complex Tasks
@@ -256,7 +455,12 @@ Agent: Let me check if we have relevant past experiences...
 
 ## Best Practices
 
-1. **Search proactively**: Use `memo_search` before answering questions about past work to leverage existing knowledge.
+1. **Search BEFORE thinking, not after**: 
+   - Use `memo_search` before answering ANY question
+   - Use `memo_search` before implementing ANY feature
+   - Use `memo_search` before making ANY technical decision
+   - Assume past experience exists until proven otherwise
+   - When in doubt, SEARCH
 
 2. **Record significant learnings**: Don't record trivial changes. Focus on:
    - Non-trivial bug fixes with non-obvious solutions

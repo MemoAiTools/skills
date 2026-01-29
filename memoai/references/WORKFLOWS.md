@@ -10,6 +10,7 @@ Step-by-step workflows for using MemoAI effectively in common scenarios.
 4. [Workflow 4: Team Knowledge Sharing](#workflow-4-team-knowledge-sharing)
 5. [Workflow 5: Post-Incident Learning](#workflow-5-post-incident-learning)
 6. [Workflow 6: Architecture Decision Recording](#workflow-6-architecture-decision-recording)
+7. [Workflow 7: AI Internal Reasoning Before Implementation](#workflow-7-ai-internal-reasoning-before-implementation)
 
 ---
 
@@ -294,6 +295,104 @@ Step-by-step workflows for using MemoAI effectively in common scenarios.
 - Add business context (cost, privacy, compliance)
 - Include performance metrics or SLAs when relevant
 - Use metadata to link to related decisions
+
+---
+
+## Workflow 7: AI Internal Reasoning Before Implementation
+
+**Scenario:** You (AI) need to implement something and must search for patterns first.
+
+### Steps
+
+1. **User requests implementation**
+   ```
+   User: "Add a search endpoint to the API"
+   ```
+
+2. **STOP - Internal check**
+   - Don't start coding immediately
+   - Ask yourself: "Could this have been done before?"
+   - Answer is almost always: YES
+
+3. **Search for relevant patterns**
+   ```javascript
+   memoai_memo_search({
+     query: "API endpoint implementation pattern search",
+     limit: 5
+   })
+   ```
+
+4. **Evaluate findings**
+   - Found similar endpoints? → Follow the same pattern
+   - Found architecture decisions? → Respect them
+   - Found nothing? → Check codebase, then record your approach
+
+5. **Communicate findings to user**
+   ```
+   Agent: "Let me check our past implementations first...
+   
+   Found relevant patterns:
+   - We use FastAPI with Pydantic validation
+   - Search endpoints follow /api/v1/{resource}/search pattern
+   - Always include pagination (limit/offset)
+   
+   I'll implement following these patterns."
+   ```
+
+6. **Implement using discovered patterns**
+
+7. **After success, offer to record (with summary)**
+   ```
+   Agent: "Implementation complete! I've added a semantic search endpoint 
+          following our project patterns.
+
+          Should I record this in your memory?
+   
+          [Yes] [Edit first] [No]"
+   ```
+
+8. **If user confirms, record DETAILED content**
+   ```javascript
+   memoai_memo_record({
+     content: "Implemented /api/v1/memos/search endpoint for semantic search.
+     
+     Technical details:
+     - Framework: FastAPI with async endpoint
+     - Validation: Pydantic models (SearchRequest, SearchResponse)
+     - Pagination: limit (default 10, max 100) + offset parameters
+     - Search: Uses sentence-transformers embeddings from inference service
+     - Similarity: Cosine similarity with threshold 0.7
+     - Performance: < 100ms for 10k memos (tested)
+     
+     Implementation:
+     - Route: GET /api/v1/memos/search?q=<query>&limit=10&offset=0
+     - Database: Queries episodes table with pgvector similarity search
+     - Response: Returns memos sorted by relevance (similarity desc)
+     
+     Files modified:
+     - src/api/routes/memos.py: Added search endpoint
+     - src/api/models.py: Added SearchRequest/SearchResponse schemas
+     - tests/test_search.py: Added integration tests
+     
+     Pattern followed:
+     - Same auth middleware as other endpoints (JWTAuthMiddleware)
+     - Same error handling pattern (HTTPException with detail)
+     - Same response format (data + metadata structure)",
+     source: "implementation"
+   })
+   
+   Agent: "Recorded with full implementation details!"
+   ```
+
+### Tips
+
+- Search BEFORE thinking about implementation
+- Share findings with user for transparency
+- ALWAYS offer to record non-trivial work
+- **Show brief summary to user, record detailed content in memoai**
+- Include: what, how, why, files, patterns, performance, trade-offs
+- Record new insights that complement past learnings
+- If no results found, mention it explicitly to user
 
 ---
 
